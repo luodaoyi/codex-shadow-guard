@@ -140,7 +140,8 @@ func hasFailedToolRecord(path string) (bool, error) {
 		return false, err
 	}
 	defer file.Close()
-	for scanner := bufio.NewScanner(file); scanner.Scan(); {
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
 		var record struct {
 			Failed bool `json:"failed"`
 		}
