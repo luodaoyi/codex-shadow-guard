@@ -1,0 +1,40 @@
+language: zh-CN
+early_access: false
+reviews:
+  profile: assertive
+  request_changes_workflow: true
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: true
+    base_branches:
+      - main
+  path_filters:
+    - "!vendor/**"
+    - "!**/vendor/**"
+    - "!**/*.{exe,dll,so,dylib,bin}"
+    - "!**/*.min.js"
+  path_instructions:
+    - path: "internal/guard/**"
+      instructions: |
+        这是 Go Codex hook guard。重点核对 hook 入站 payload 与 block/stop 响应格式是否与 Codex 约定一致，不要改字段名、状态码语义或提前终止条件。
+        禁止在提交说明、错误文案或自动回复中使用 Fixes、Closes、Resolves 等会关闭 Issue/PR 的关键词。
+        不得上传、记录或回传到密钥、token、会话、环境变量或用户仓库内容；默认必须可本地、离线运行，不要引入必须访问外网的新依赖。
+    - path: "cmd/**"
+      instructions: |
+        检查 CLI 入口参数、退出码和安装/卸载路径。保持本地/离线为默认，不要偷偷联网或把密钥写入日志。
+        不要建议在用户消息或 git 提交信息中加入会关闭 Issue 的关键词。
+    - path: ".github/workflows/**"
+      instructions: |
+        保持 Windows、macOS、Linux 三平台 CI。检查权限最小化、密钥不进日志、不上传制品中的敏感文件。
+    - path: "README.md"
+      instructions: |
+        说明须与真实 hook 行为一致：block/stop 格式、本地/离线默认、不上传密钥。不要编造未实现的功能。
+    - path: "docs/**"
+      instructions: |
+        文档与代码同步。强调 payload/block-stop 约定、跨平台差异和离线默认，禁止写入会关闭 Issue 的关键词。
+chat:
+  auto_reply: true
