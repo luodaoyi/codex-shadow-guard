@@ -11,7 +11,7 @@ type HookInput struct {
 	Permission    string         `json:"permission_mode"`
 	ToolName      string         `json:"tool_name"`
 	ToolInput     map[string]any `json:"tool_input"`
-	ToolResponse  map[string]any `json:"tool_response"`
+	ToolResponse  any            `json:"tool_response"`
 	LastAssistant string         `json:"last_assistant_message"`
 }
 
