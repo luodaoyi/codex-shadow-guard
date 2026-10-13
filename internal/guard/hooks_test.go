@@ -1,6 +1,7 @@
 package guard
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,6 +19,43 @@ func TestEvaluatePreToolUseAllowsNormalCommand(t *testing.T) {
 	decision := EvaluatePreToolUse(HookInput{ToolInput: map[string]any{"command": "git status --short"}})
 	if decision != nil {
 		t.Fatalf("normal read-only command unexpectedly blocked: %#v", decision)
+	}
+}
+
+// Codex sends Bash and apply_patch tool_response as a JSON string, not an object.
+func TestRecordPostToolUseAcceptsStringToolResponse(t *testing.T) {
+	project := t.TempDir()
+	raw, err := json.Marshal(map[string]any{
+		"session_id":      "session",
+		"cwd":             project,
+		"hook_event_name": "PostToolUse",
+		"tool_name":       "Bash",
+		"tool_use_id":     "call-1",
+		"tool_input":      map[string]any{"command": "ls"},
+		"tool_response":   "file1\nfile2\n",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var input HookInput
+	if err := json.Unmarshal(raw, &input); err != nil {
+		t.Fatalf("decode PostToolUse payload with string tool_response: %v", err)
+	}
+	if err := RecordPostToolUse(input); err != nil {
+		t.Fatal(err)
+	}
+	if failed, err := hasFailedToolRecord(filepath.Join(project, ToolRecordFile)); err != nil || failed {
+		t.Fatalf("string tool_response must be recorded as not failed, failed=%v err=%v", failed, err)
+	}
+}
+
+func TestResponseFailedReadsObjectResponse(t *testing.T) {
+	var input HookInput
+	if err := json.Unmarshal([]byte(`{"tool_response":{"exit_code":2}}`), &input); err != nil {
+		t.Fatal(err)
+	}
+	if !responseFailed(input.ToolResponse) {
+		t.Fatal("object tool_response with non-zero exit_code must be reported as failed")
 	}
 }
 

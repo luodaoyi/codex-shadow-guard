@@ -119,7 +119,13 @@ func compactInput(input map[string]any) map[string]string {
 	return result
 }
 
-func responseFailed(response map[string]any) bool {
+// responseFailed inspects only object-shaped responses. Codex sends Bash and
+// apply_patch tool_response as a plain string, which carries no failure flag.
+func responseFailed(value any) bool {
+	response, ok := value.(map[string]any)
+	if !ok {
+		return false
+	}
 	for _, key := range []string{"is_error", "error", "failed"} {
 		if value, ok := response[key].(bool); ok && value {
 			return true
